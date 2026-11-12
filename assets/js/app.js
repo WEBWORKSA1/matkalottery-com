@@ -165,18 +165,18 @@
   // ---- Multi-step forms -------------------------------------------------------
   $$('[data-steps]').forEach(function (wrap) {
     var steps = $$('.step', wrap), bars = $$('.progress li', wrap), i = 0;
-    function show(n) {
+    function show(n, focus) {
       i = n;
       steps.forEach(function (s, k) { s.hidden = k !== n; });
       bars.forEach(function (b, k) { b.classList.toggle('done', k <= n); });
-      var h = steps[n].querySelector('h3, legend'); if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); }
+      var h = steps[n].querySelector('h3, legend'); if (h && focus) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); }
     }
     wrap.addEventListener('click', function (e) {
       if (e.target.closest('[data-next]')) {
         var ok = $$('input,select,textarea', steps[i]).every(function (el) { return el.reportValidity(); });
-        if (ok && i < steps.length - 1) show(i + 1);
+        if (ok && i < steps.length - 1) show(i + 1, true);
       }
-      if (e.target.closest('[data-prev]') && i > 0) show(i - 1);
+      if (e.target.closest('[data-prev]') && i > 0) show(i - 1, true);
     });
     var form = wrap.closest('form') || wrap;
     form.addEventListener('ml:sent', function () { show(0); });
@@ -238,7 +238,7 @@
   ];
   var di = dayIndex(), now = ist();
   $$('[data-widget]').forEach(function (el) {
-    var t = el.getAttribute('data-widget'), big = el.querySelector('.big'), p = el.querySelector('p');
+    var t = el.getAttribute('data-widget'), big = el.querySelector('.big'), p = el.querySelector('p:not(.big)');
     if (t === 'kerala') {
       big.textContent = KERALA[now.getDay()];
       p.innerHTML = 'Kerala’s weekly draw for ' + now.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' }) + ', usually at 3 pm. Check results only at <a href="https://statelottery.kerala.gov.in/" target="_blank" rel="noopener">the official site</a>.';

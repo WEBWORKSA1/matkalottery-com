@@ -271,4 +271,7 @@ textarea{min-height:120px;resize:vertical}
 .foot-links{display:flex;flex-wrap:wrap;gap:6px 18px}
 .consent{position:fixed;left:16px;bottom:16px;right:16px;z-index:80;max-width:560px;background:#fff;border:1.5px solid var(--ink);border-radius:var(--r);padding:14px 16px;box-shadow:0 14px 40px rgba(28,31,90,.25);display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:.95rem}
 .consent p{margin:0;flex:1 1 260px}
+/* tool cards placed on dark bands keep their own colours */
+.band-ink a.tool,.band-ink a.tool:hover{color:var(--ink)}
+.band-ink a.tool span{color:var(--muted)}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
