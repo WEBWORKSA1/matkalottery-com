@@ -1,0 +1,44 @@
+# Optional: copy this file to .github/workflows/update-news.yml in the GitHub web editor.
+# It refreshes data/news.json daily so the News page has fresh fallback headlines.
+name: Update news
+on:
+  schedule:
+    - cron: '17 1 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+  pages: write
+jobs:
+  news:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch headlines
+        run: |
+          python3 - <<'PY'
+          import json, urllib.request, urllib.parse, xml.etree.ElementTree as ET, datetime
+          queries = ['lottery scam India', 'Kerala lottery', 'lottery tax India', 'online gaming law India']
+          items, seen = [], set()
+          for q in queries:
+              url = 'https://news.google.com/rss/search?' + urllib.parse.urlencode({'q': q, 'hl': 'en-IN', 'gl': 'IN', 'ceid': 'IN:en'})
+              try:
+                  root = ET.fromstring(urllib.request.urlopen(url, timeout=30).read())
+              except Exception as e:
+                  print('skip', q, e); continue
+              for it in root.iter('item'):
+                  t = (it.findtext('title') or '').strip()
+                  if not t or t in seen: continue
+                  seen.add(t)
+                  title, _, source = t.rpartition(' - ')
+                  items.append({'title': title or t, 'source': source, 'link': it.findtext('link'), 'date': it.findtext('pubDate'), 'topic': q})
+          if items:
+              json.dump({'updated': datetime.datetime.utcnow().isoformat() + 'Z', 'items': items[:40]}, open('data/news.json', 'w'), indent=1)
+          PY
+      - name: Commit
+        run: |
+          git config user.name 'news-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add data/news.json
+          git diff --cached --quiet || (git commit -m 'Refresh news' && git push)
+      - name: Rebuild Pages
+        run: curl -s -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H 'Accept: application/vnd.github+json' https://api.github.com/repos/${{ github.repository }}/pages/builds
